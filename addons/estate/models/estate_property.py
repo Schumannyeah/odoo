@@ -14,7 +14,7 @@ class EstateProperty(models.Model):
     postcode = fields.Char('Postcode')
     date_availability = fields.Datetime('Availability Date')
     expected_price = fields.Float('Expected Price', required=True, digits=(16, 2))
-    selling_price = fields.Float('Selling Price', digits=(16, 2))
+    selling_price = fields.Float('Selling Price', digits=(16, 2), readonly=True)
     bedrooms = fields.Integer('Bedrooms', default=2)
     living_area = fields.Integer('Living Area')
     facades = fields.Integer('Facades')
@@ -29,5 +29,5 @@ class EstateProperty(models.Model):
             ('west', "West"),
             ('north', "North"),
         ],
-        default='South',
+        default='south',
     )
