@@ -1,22 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-
-    <!-- Top menu item -->
-    <!--
-        This menu item's purpose is to overwrite another one defined in
-        the base module in order to set new groups.
-    -->
-
     <menuitem id="menu_estate_root" name="Estate">
         <menuitem id="estate_first_level_menu" name="Estate Property">
             <menuitem id="estate_property_menu_action" action="estate_property_action"/>
         </menuitem>
     </menuitem>
-
     <menuitem id="test_menu_root" name="Test">
         <menuitem id="test_first_level_menu" name="First Level">
             <menuitem id="test_model_menu_action" action="test_model_action"/>
         </menuitem>
     </menuitem>
-
 </odoo>
