@@ -1,14 +1,24 @@
 # -*- coding: utf-8 -*-
 # Part of Odoo. See LICENSE file for full copyright and licensing details.
 import threading
-
+# Schumann
+# threading: Used to check if the current thread is in testing mode.
+# odoo: Provides access to Odoo's ORM and other utilities.
+# _: Used for translation.
+# api: Provides decorators for defining methods.
+# fields: Contains field types for models.
+# models: Contains base classes for models.
 from odoo import _, api, fields, models
 
-
 class Company(models.Model):
+    # Schumann
+    # _inherit = "res.company": This indicates that the Company class is extending the existing res.company model.
+    # _check_company_auto = True: Ensures that the company is automatically checked for consistency.
     _inherit = "res.company"
     _check_company_auto = True
 
+    # Schumann
+    # TODO: to understand how it works here
     def _default_confirmation_mail_template(self):
         try:
             return self.env.ref('stock.mail_template_data_delivery_confirmation').id
@@ -50,22 +60,42 @@ class Company(models.Model):
            we don't want to create accounting entries at that time.
         '''
         parent_location = self.env.ref('stock.stock_location_locations', raise_if_not_found=False)
+        # Schumann
+        # self.env.ref is a method used to retrieve a record from the database based on an external identifier (XML ID).
+        # self.env.ref('stock.stock_location_locations' meaning under the module Stock addons\stock\data,
+        # there is a file called stock_data.xml, within which there is a record with id stock_location_locations
+
+        # self refers to the "res.company" as inherited here
+        # self.env['stock.location']: Accesses the stock.location model.
         for company in self:
             location = self.env['stock.location'].create({
+                # _ below is used for internationalization (i18n) and localization (l10n)
                 'name': _('Inter-warehouse transit'),
                 'usage': 'transit',
+                # If parent_location is defined and not False, it uses the id of parent_location.
+                # If parent_location is False or not defined, it sets location_id to False.
                 'location_id': parent_location and parent_location.id or False,
                 'company_id': company.id,
                 'active': False
             })
 
+            # Schumann
+            # this is actually updating the res_company's field internal_transit_location_id
+            # location.id is the id of the newly created location
             company.write({'internal_transit_location_id': location.id})
 
+            # Schumann
+            # this is getting the res_partner through res_company.
+            # This ensures that the operation is performed in the context of the specified company.
+            # It sets the company context for the write operation.
             company.partner_id.with_company(company).write({
                 'property_stock_customer': location.id,
                 'property_stock_supplier': location.id,
             })
 
+    # Schumann
+    # to use a _ in front of the method _create_inventory_loss_location, means the method is a private one
+    # and should not be used outside the class
     def _create_inventory_loss_location(self):
         parent_location = self.env.ref('stock.stock_location_locations_virtual', raise_if_not_found=False)
         for company in self:
@@ -75,6 +105,9 @@ class Company(models.Model):
                 'location_id': parent_location.id,
                 'company_id': company.id,
             })
+            # Schumann
+            # first get ir_default model from the environment and then set the default value
+            # for the property_stock_inventory field of product.template model
             self.env['ir.default'].set('product.template', 'property_stock_inventory', inventory_loss_location.id, company_id=company.id)
 
     def _create_production_location(self):
@@ -114,6 +147,8 @@ class Company(models.Model):
         if scrap_vals:
             self.env['ir.sequence'].create(scrap_vals)
 
+    # @api.model: This decorator signifies that the method operates in the model environment without being tied to a specific record.
+    # It is used for methods that don't depend on or modify individual records but interact with the model's dataset as a whole.
     @api.model
     def create_missing_warehouse(self):
         """ This hook is used to add a warehouse on the first company of the database
@@ -137,7 +172,14 @@ class Company(models.Model):
     def create_missing_inventory_loss_location(self):
         company_ids  = self.env['res.company'].search([])
         inventory_loss_product_template_field = self.env['ir.model.fields']._get('product.template', 'property_stock_inventory')
+        #  sudo() method is used to bypass record rules and access control lists (ACLs) temporarily.
+        #  When you call sudo() on a model, it grants full administrative privileges to the current operation,
+        #  allowing you to perform actions that would otherwise be restricted by security policies.
+        #  mappedThis method extracts the company_id from each record found by the search.
+        #  The mapped method returns a list of the specified field values from the records.
         companies_having_property = self.env['ir.default'].sudo().search([('field_id', '=', inventory_loss_product_template_field.id)]).mapped('company_id')
+        # This uses the - operator to subtract companies that already have the property configured
+        # (companies_having_property) from the total list of companies (company_ids).
         company_without_property = company_ids - companies_having_property
         company_without_property._create_inventory_loss_location()
 
@@ -163,6 +205,16 @@ class Company(models.Model):
         company_todo_sequence = company_ids - company_has_scrap_seq
         company_todo_sequence._create_scrap_sequence()
 
+    # Schumann
+    # This method ensures that all standard locations required for managing stock operations in a company are created. These include:
+    #
+    # Transit Location: For inter-company or inter-warehouse transfers.
+    # Inventory Loss Location: To track inventory discrepancies.
+    # Production Location: For manufacturing operations.
+    # Scrap Location: For defective or unusable stock.
+    #
+    # The method does not have an explicit decorator but operates on a single record (self.ensure_one()),
+    # meaning it should be called on one res.company record at a time.
     def _create_per_company_locations(self):
         self.ensure_one()
         self._create_transit_location()
@@ -180,18 +232,27 @@ class Company(models.Model):
     def _create_per_company_rules(self):
         self.ensure_one()
 
+    # Schumann
+    # @api.model_create_multi This decorator allows the method to handle the creation of multiple records simultaneously
+    # by passing a list of dictionaries (vals_list) containing the values for each record to be created.
     @api.model_create_multi
     def create(self, vals_list):
+        # Calls the parent create method to create the company records from vals_list.
         companies = super().create(vals_list)
         # Unarchive inter-company location when multi-company is enabled.
         inter_company_location = self.env.ref('stock.stock_location_inter_company')
         if not inter_company_location.active:
             inter_company_location.sudo().write({'active': True})
         for company in companies:
+            # Creates standard stock locations (transit, inventory loss, production, scrap).
             company.sudo()._create_per_company_locations()
+            # Creates unique sequences for operations like stock moves or pickings.
             company.sudo()._create_per_company_sequences()
+            # Defines picking types for the company (e.g., incoming, outgoing, internal).
             company.sudo()._create_per_company_picking_types()
+            # Sets up stock rules for the company (e.g., replenishment, procurement rules).
             company.sudo()._create_per_company_rules()
+            # Configures the inter-company stock locations for the company using the reactivated inter-company location.
             company.sudo()._set_per_company_inter_company_locations(inter_company_location)
         test_mode = getattr(threading.current_thread(), 'testing', False)
         if test_mode:
@@ -200,6 +261,9 @@ class Company(models.Model):
 
     def _set_per_company_inter_company_locations(self, inter_company_location):
         self.ensure_one()
+        # Schumann
+        # from the addons/base/models
+        # "group_multi_company" as defined in the base_group.xml
         if not self.env.user.has_group('base.group_multi_company'):
             return
         other_companies = self.env['res.company'].search([('id', '!=', self.id)])
