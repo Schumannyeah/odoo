@@ -19,12 +19,23 @@ class ProductTemplate(models.Model):
     _inherit = ['mail.thread', 'mail.activity.mixin', 'image.mixin']
     _description = "Product"
     _order = "is_favorite desc, name"
+    # Schumann
+    # _check_company_auto and _check_company_domain: Enable company-specific validation for this model.
     _check_company_auto = True
     _check_company_domain = models.check_company_domain_parent_of
 
     @tools.ormcache()
     def _get_default_category_id(self):
         # Deletion forbidden (at least through unlink)
+        # Schumann: Returns a default product category (product_category_all) from a data reference.
+
+        # self.env.ref:
+        # Fetches a record based on its XML ID.
+        # The product.product_category_all is the default product category included in the Odoo base data.
+
+        # the first "product" out of "product.product_category_all" refers to the module product under addons
+        # the code indeed search the xml id product_category_all
+        # marked by <record id="product_category_all" model="product.category">, whose name is All.
         return self.env.ref('product.product_category_all')
 
     @tools.ormcache()
@@ -35,11 +46,27 @@ class ProductTemplate(models.Model):
     def _get_default_uom_po_id(self):
         return self.default_get(['uom_id']).get('uom_id') or self._get_default_uom_id()
 
+    # Schumann
+    # This method customizes how the categ_id field behaves when used in group by operations in the Odoo interface.
+    # It's invoked automatically when the system needs to group records by product category (categ_id) and
+    # ensures that the grouping logic respects certain context values (like default_categ_id or group_expand).
+
     def _read_group_categ_id(self, categories, domain):
         category_ids = self.env.context.get('default_categ_id')
         if not category_ids and self.env.context.get('group_expand'):
             category_ids = categories.sudo()._search([], order=categories._order)
+        # Converts the list of category_ids into recordsets (a list of product.category records).
         return categories.browse(category_ids)
+
+    # def _group_expand_product_type(self, types, domain):
+    #     """
+    #     Group expand method for the 'type' field. Ensures all selection values are displayed in grouped views.
+    #     """
+    #     # Retrieve all possible `type` values from the selection field
+    #     selection_values = [t[0] for t in self.fields_get(['type'])['type']['selection']]
+    #
+    #     # Return recordsets of pseudo-records for each type
+    #     return self.env['product.template'].browse([0] * len(selection_values))
 
     name = fields.Char('Name', index='trigram', required=True, translate=True)
     sequence = fields.Integer('Sequence', default=1, help='Gives the sequence order when displaying a product list')
@@ -62,6 +89,7 @@ class ProductTemplate(models.Model):
         ],
         required=True,
         default='consu',
+        # group_expand='_group_expand_product_type',
     )
     combo_ids = fields.Many2many(
         string="Combo Choices", comodel_name='product.combo', check_company=True
@@ -76,6 +104,9 @@ class ProductTemplate(models.Model):
         store=True,
         readonly=False,
     )
+    # Schumann
+    # Specifies a method (_read_group_categ_id) to dynamically expand the groups displayed in views
+    # where this field is used in group by.
     categ_id = fields.Many2one(
         'product.category', 'Product Category',
         change_default=True, default=_get_default_category_id, group_expand='_read_group_categ_id',
@@ -87,6 +118,10 @@ class ProductTemplate(models.Model):
         'res.currency', 'Cost Currency', compute='_compute_cost_currency_id')
 
     # list_price: catalog price, user defined
+    # Schumann digits='Product Price' comes from Settings → Technical → Database Structure
+    # → Decimal Accuracy -> Product Price
+    # tracking=True:
+    # Enables tracking of changes to this field in the chatter (the message log visible on the form view).
     list_price = fields.Float(
         'Sales Price', default=1.0,
         digits='Product Price',
@@ -95,6 +130,8 @@ class ProductTemplate(models.Model):
     )
     standard_price = fields.Float(
         'Cost', compute='_compute_standard_price',
+        # The inverse method _set_standard_price is triggered when a user modifies the value of standard_price directly.
+        # Typically, it updates the database or related records to reflect the change in the product's cost.
         inverse='_set_standard_price', search='_search_standard_price',
         digits='Product Price', groups="base.group_user",
         help="""Value of the product (automatically computed in AVCO).
@@ -113,7 +150,8 @@ class ProductTemplate(models.Model):
     purchase_ok = fields.Boolean('Purchase', default=True, compute='_compute_purchase_ok', store=True, readonly=False)
     uom_id = fields.Many2one(
         'uom.uom', 'Unit of Measure',
-        default=_get_default_uom_id, required=True,
+        default=_get_default_uom_id,
+        required=True,
         help="Default unit of measure used for all stock operations.")
     uom_name = fields.Char(string='Unit of Measure Name', related='uom_id.name', readonly=True)
     uom_po_id = fields.Many2one(
@@ -137,14 +175,22 @@ class ProductTemplate(models.Model):
     valid_product_template_attribute_line_ids = fields.Many2many('product.template.attribute.line',
         compute="_compute_valid_product_template_attribute_line_ids", string='Valid Product Attribute Lines')
 
+    # Schumann Represents a one-to-many relationship between the product.template model and the product.product model.
     product_variant_ids = fields.One2many('product.product', 'product_tmpl_id', 'Products', required=True)
     # performance: product_variant_id provides prefetching on the first product variant only
+    # Schumann the reason for Many2one here is Each template points to one variant (only the first variant is returned).
     product_variant_id = fields.Many2one('product.product', 'Product', compute='_compute_product_variant_id')
 
     product_variant_count = fields.Integer(
         '# Product Variants', compute='_compute_product_variant_count')
 
-    # related to display product product information if is_product_variant
+    # related to display product_product information if is_product_variant
+    # barcode is stored in product_product
+    # Schumann The inverse parameter specifies a method that is triggered when a computed field is manually modified.
+    # The compute parameter is used to specify a method that dynamically computes the value of the field.
+    # The value is not stored in the database unless you explicitly use store=True.
+    # The search parameter defines a custom search method for the field. This is useful for complex queries
+    # where the field's value is derived from relationships or calculations.
     barcode = fields.Char('Barcode', compute='_compute_barcode', inverse='_set_barcode', search='_search_barcode')
     default_code = fields.Char(
         'Internal Reference', compute='_compute_default_code',
@@ -152,6 +198,9 @@ class ProductTemplate(models.Model):
 
     pricelist_item_count = fields.Integer("Number of price rules", compute="_compute_item_count")
 
+    # Schumann
+    # inverse_name - Defines the field in the product.document model that establishes the relationship.
+    # acutally product_document inherit ir_attachment, where res_id is defined
     product_document_ids = fields.One2many(
         string="Documents",
         comodel_name='product.document',
@@ -173,8 +222,19 @@ class ProductTemplate(models.Model):
     # Properties
     product_properties = fields.Properties('Properties', definition='categ_id.product_properties_definition', copy=True)
 
+    # Schumann
+    # @api.depends('type'):
+    #
+    # This decorator indicates that the method depends on the type field.
+    # Whenever the value of the type field changes, Odoo automatically triggers _compute_service_tracking
+    # to recompute the value of the service_tracking field.
     @api.depends('type')
     def _compute_service_tracking(self):
+        # self represents a recordset of product.template or product.product records.
+        # The filtered method applies a lambda function to filter out records where the type field is not equal to 'service'.
+        # For the filtered records (those not of type 'service'), the service_tracking field is set to 'no'.
+        # This ensures that only products of type 'service' are eligible for other potential service_tracking
+        # values (if they exist in the selection).
         self.filtered(lambda product: product.type != 'service').service_tracking = 'no'
 
     def _compute_purchase_ok(self):
@@ -239,11 +299,20 @@ class ProductTemplate(models.Model):
         for template in self:
             template.product_variant_ids._check_barcode_uniqueness()
 
+    # Schumann @api.depends('company_id'):
+    # This decorator marks the method as dependent on the company_id field.
+    # When company_id changes, Odoo automatically triggers the recomputation of the currency_id field.
     @api.depends('company_id')
     def _compute_currency_id(self):
+        # using the _get_main_company() method from the res.company model.
         main_company = self.env['res.company']._get_main_company()
         for template in self:
             template.currency_id = template.company_id.sudo().currency_id.id or main_company.currency_id.id
+
+    # Schumann @api.depends_context('company'):
+    # This ensures the computation is context-aware for the company key in the environment's context (self.env.context).
+    # If the active company context (self.env.company) changes, the method will also trigger recomputation,
+    # even if company_id itself does not change.
 
     @api.depends('company_id')
     @api.depends_context('company')

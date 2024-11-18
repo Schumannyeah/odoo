@@ -16,4 +16,7 @@
         'views/estate_menus.xml',
 
     ],
+    'installable': True,
+    'application': True,
+    'auto_install': False
 }
