@@ -4,6 +4,7 @@
 from odoo import fields, models, api
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
+from datetime import timedelta
 
 
 class EstateProperty(models.Model):
@@ -47,20 +48,25 @@ class EstateProperty(models.Model):
         default='new',
     )
     active = fields.Boolean('Active', default=True)
+    is_recent = fields.Boolean(compute='_compute_is_recent', search='_search_is_recent')
+    salesman_id = fields.Many2one("res.users", string="Salesman", default=lambda self: self.env.user)
+    buyer_id = fields.Many2one("res.partner", string="Buyer")
+    estate_property_type_id = fields.Many2one("estate.property.type", string="Property Type")
+    tag_ids = fields.Many2many(
+        string="Property Tags", comodel_name='estate.property.tag', relation='estate_property_tag_estate_property_rel'
+    )
+    offer_price_ids = fields.One2many('estate.property.offer', 'price', 'Offer Price', depends_context=('company',))
+    offer_status_ids = fields.One2many('estate.property.offer', 'status', 'Offer Status', depends_context=('company',))
+    offer_partner_ids = fields.One2many('estate.property.offer', 'partner_id', 'Offer Supplier', depends_context=('company',))
 
-    # # Add this computed field
-    # formatted_date = fields.Char('Availability Date', compute='_compute_formatted_date')
-    #
-    # # Computed field for formatted date
-    # formatted_date_availability = fields.Char(string='Formatted Availability Date', compute='_compute_formatted_date')
-    #
-    # @api.depends('date_availability')
-    # def _compute_formatted_date(self):
-    #     for record in self:
-    #         if record.date_availability:
-    #             record.formatted_date_availability = record.date_availability.strftime('%Y-%m-%d')
-    #         else:
-    #             record.formatted_date_availability = ""
+    def _compute_is_recent(self):
+        for record in self:
+            record.is_recent = fields.Datetime.from_string(record.create_date) >= fields.Datetime.now() - timedelta(hours=2)
+
+    def _search_is_recent(self, operator, value):
+        if operator == '=' and value:
+            return [('create_date', '>=', fields.Datetime.now() - timedelta(hours=7))]
+        return []
 
     @api.model_create_multi
     def create(self, vals_list):
