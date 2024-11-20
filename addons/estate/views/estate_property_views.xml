@@ -79,9 +79,13 @@
                         </page>
                         <page string="Offers">
                             <group>
-                                <field name="offer_price_ids"/>
-                                <field name="offer_partner_ids"/>
-                                <field name="offer_status_ids"/>
+                                <field name="offer_price_ids" string="Current Offers: ">
+                                    <list>
+                                        <field name="price"/>
+                                        <field name="status"/>
+                                        <field name="partner_id"/>
+                                    </list>
+                                </field>
                             </group>
                         </page>
                         <page string="Other Info">

@@ -55,9 +55,9 @@ class EstateProperty(models.Model):
     tag_ids = fields.Many2many(
         string="Property Tags", comodel_name='estate.property.tag', relation='estate_property_tag_estate_property_rel'
     )
-    offer_price_ids = fields.One2many('estate.property.offer', 'price', 'Offer Price', depends_context=('company',))
-    offer_status_ids = fields.One2many('estate.property.offer', 'status', 'Offer Status', depends_context=('company',))
-    offer_partner_ids = fields.One2many('estate.property.offer', 'partner_id', 'Offer Supplier', depends_context=('company',))
+    offer_price_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Price', depends_context=('company',))
+    offer_status_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Status', depends_context=('company',))
+    offer_partner_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Supplier', depends_context=('company',))
 
     def _compute_is_recent(self):
         for record in self:
