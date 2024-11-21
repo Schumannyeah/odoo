@@ -20,11 +20,11 @@ class EstateProperty(models.Model):
     expected_price = fields.Float('Expected Price', required=True, digits=(16, 2))
     selling_price = fields.Float('Selling Price', digits=(16, 2), readonly=True)
     bedrooms = fields.Integer('Bedrooms', default=2)
-    living_area = fields.Integer('Living Area')
+    living_area = fields.Float('Living Area')
     facades = fields.Integer('Facades')
     garage = fields.Boolean(string='Has Garage', default=False, help="Whether there is a garage?")
     garden = fields.Boolean(string='Has Garden', default=True, help="Whether there is a garden?")
-    garden_area = fields.Integer('Garden Area')
+    garden_area = fields.Float('Garden Area')
     garden_orientation = fields.Selection(
         string="Garden Orientation",
         selection=[
@@ -56,8 +56,10 @@ class EstateProperty(models.Model):
         string="Property Tags", comodel_name='estate.property.tag', relation='estate_property_tag_estate_property_rel'
     )
     offer_price_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Price', depends_context=('company',))
-    offer_status_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Status', depends_context=('company',))
-    offer_partner_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Supplier', depends_context=('company',))
+    # offer_status_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Status', depends_context=('company',))
+    # offer_partner_ids = fields.One2many('estate.property.offer', 'property_id', 'Offer Supplier', depends_context=('company',))
+    total_area = fields.Float(compute="_compute_total_area")
+    best_price = fields.Float('Best Offer Price', compute='_compute_best_price', store=True)
 
     def _compute_is_recent(self):
         for record in self:
@@ -67,6 +69,30 @@ class EstateProperty(models.Model):
         if operator == '=' and value:
             return [('create_date', '>=', fields.Datetime.now() - timedelta(hours=7))]
         return []
+
+    @api.depends('living_area', 'garden_area')
+    def _compute_total_area(self):
+        for record in self:
+            record.total_area = record.living_area + record.garden_area
+
+    @api.depends('offer_price_ids.price')
+    def _compute_best_price(self):
+        for record in self:
+            # If there are offers related to the property, get the highest price
+            if record.offer_price_ids:
+                best_offer = max(record.offer_price_ids, key=lambda offer: offer.price)
+                record.best_price = best_offer.price
+            else:
+                record.best_price = 0.0
+
+    @api.onchange('garden')
+    def _onchange_garden(self):
+        if self.garden:
+            self.garden_area = 10.0
+            self.garden_orientation = 'north'
+        else:
+            self.garden_area = 0.0
+            self.garden_orientation = False
 
     @api.model_create_multi
     def create(self, vals_list):
