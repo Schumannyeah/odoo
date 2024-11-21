@@ -40,6 +40,12 @@
         <field name="model">estate.property</field>
         <field name="arch" type="xml">
             <form string="Estate Property">
+                <heaer>
+                    <button name="action_set_estate_property_sold" string="SOLD"
+                            type="object" class="oe_highlight"/>
+                    <button name="action_set_estate_property_cancel" string="CANCEL"
+                            type="object" class="oe_highlight"/>
+                </heaer>
                 <sheet>
                     <group>
                         <group>
@@ -54,6 +60,7 @@
                         <group>
                             <group>
                                 <field name="tag_ids" widget="many2many_tags"/>
+                                <field name="state"/>
                                 <field name="estate_property_type_id"/>
                                 <field name="postcode"/>
                                 <field name="date_availability"/>

@@ -5,6 +5,7 @@ from odoo import fields, models, api
 from dateutil.relativedelta import relativedelta
 from datetime import datetime
 from datetime import timedelta
+from odoo.exceptions import UserError, ValidationError
 
 
 class EstateProperty(models.Model):
@@ -120,3 +121,29 @@ class EstateProperty(models.Model):
         vals.pop('state', None)
         return super().write(vals)
 
+    def action_set_estate_property_cancel(self):
+        for record in self:
+            # Add logging to see if the method is actually called
+            print(f"Attempting to cancel property: {record.name}")
+            print(f"Current state before change: {record.state}")
+
+            try:
+                record.state = "cancelled"
+                # Add a commit to ensure changes are saved
+                self.env.cr.commit()
+
+                # Verify the state after change
+                print(f"State after change: {record.state}")
+                return True
+            except Exception as e:
+                # Catch and print any exceptions
+                print(f"Error changing state: {str(e)}")
+                # Optionally, you can re-raise the exception
+                raise
+
+    def action_set_estate_property_sold(self):
+        for record in self:
+            if record.state == "cancelled":
+                raise UserError("Cancelled properties can not be sold!")
+            else:
+                record.state = "sold"
