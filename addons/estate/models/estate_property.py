@@ -62,6 +62,13 @@ class EstateProperty(models.Model):
     total_area = fields.Float(compute="_compute_total_area")
     best_price = fields.Float('Best Offer Price', compute='_compute_best_price', store=True)
 
+    _sql_constraints = [
+        ('check_expected_price_positve', 'CHECK(expected_price > 0)',
+         'The expected price must be strictly positive!'),
+        ('check_selling_price_positve', 'CHECK(selling_price >= 0)',
+         'The selling price must be strictly positive!')
+    ]
+
     def _compute_is_recent(self):
         for record in self:
             record.is_recent = fields.Datetime.from_string(record.create_date) >= fields.Datetime.now() - timedelta(hours=2)
@@ -105,10 +112,6 @@ class EstateProperty(models.Model):
         for vals in vals_list:
             # Create a copy to avoid modifying the original
             vals = vals.copy()
-            # Remove protected fields
-            vals.pop('date_availability', None)
-            vals.pop('selling_price', None)
-            vals.pop('state', None)
 
         # Create the records using the super method
         return super().create(vals_list)
@@ -116,30 +119,22 @@ class EstateProperty(models.Model):
     def write(self, vals):
         # Prevent updating date_availability and selling_price
         vals = vals.copy()
-        vals.pop('date_availability', None)
-        vals.pop('selling_price', None)
-        vals.pop('state', None)
+
         return super().write(vals)
 
     def action_set_estate_property_cancel(self):
         for record in self:
-            # Add logging to see if the method is actually called
-            print(f"Attempting to cancel property: {record.name}")
-            print(f"Current state before change: {record.state}")
+            # Additional validation if needed
+            if record.state == 'sold':
+                raise UserError("Sold properties cannot be cancelled!")
 
             try:
-                record.state = "cancelled"
-                # Add a commit to ensure changes are saved
-                self.env.cr.commit()
-
-                # Verify the state after change
-                print(f"State after change: {record.state}")
-                return True
+                # Use self.write() for better ORM integration
+                record.write({'state': 'cancelled'})
             except Exception as e:
-                # Catch and print any exceptions
-                print(f"Error changing state: {str(e)}")
-                # Optionally, you can re-raise the exception
-                raise
+                raise UserError(f"Could not cancel property: {str(e)}")
+
+        return True
 
     def action_set_estate_property_sold(self):
         for record in self:
@@ -147,3 +142,4 @@ class EstateProperty(models.Model):
                 raise UserError("Cancelled properties can not be sold!")
             else:
                 record.state = "sold"
+

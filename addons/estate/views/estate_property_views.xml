@@ -91,10 +91,20 @@
                                 <field name="offer_price_ids" string="Current Offers: ">
                                     <list>
                                         <field name="price"/>
-                                        <field name="status"/>
                                         <field name="partner_id"/>
                                         <field name="validity" string="Validity (days)"/>
                                         <field name="date_deadline" string="Deadline"/>
+                                        <field name="status"/>
+                                        <button name="action_confirm"
+                                                string="Confirm"
+                                                type="object"
+                                                icon="fa-check"
+                                                attrs="{'invisible': [('status', '!=', 'drafted')]}"/>
+                                        <button name="action_cancel"
+                                                string="Cancel"
+                                                type="object"
+                                                icon="fa-times"
+                                                attrs="{'invisible': [('status', 'not in', ['drafted', 'accepted'])]}"/>
                                     </list>
                                 </field>
                             </group>
@@ -122,12 +132,12 @@
                     string is shown as "tag name" after keying down the search context
                     The fields won't be listed under the search
                 -->
-                <field name="name" string="Title" />
-                <field name="postcode" string="Postcode" />
-                <field name="expected_price" string="Expected Price" />
-                <field name="bedrooms" string="Bedrooms" />
-                <field name="living_area" string="Living Area" />
-                <field name="facades" string="Facades" />
+                <field name="name" string="Title"/>
+                <field name="postcode" string="Postcode"/>
+                <field name="expected_price" string="Expected Price"/>
+                <field name="bedrooms" string="Bedrooms"/>
+                <field name="living_area" string="Living Area"/>
+                <field name="facades" string="Facades"/>
                 <separator/>
                 <!--
                     The filter tag will be shown under the search bar
@@ -137,7 +147,8 @@
                 <filter string="Available" name="date_availability"/>
                 <filter string="New Records in last 7 hours" name="is_recent" domain="[('is_recent', '=', True)]"/>
                 <group expand="1" string="Group By">
-                    <filter string="Orientation" name="garden_orientation" context="{'group_by':'garden_orientation', 'garden':True}"/>
+                    <filter string="Orientation" name="garden_orientation"
+                            context="{'group_by':'garden_orientation', 'garden':True}"/>
                 </group>
                 <group expand="1" string="Group By">
                     <filter string="Post Code" name="postcode" context="{'group_by':'postcode'}"/>

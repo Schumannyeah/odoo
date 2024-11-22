@@ -10,3 +10,6 @@ class EstatePropertyType(models.Model):
 
     name = fields.Char('Name', required=True, translate=True, default="Unknown")
 
+    _sql_constraints = [
+        ('type_name_uniq', 'unique (name)', """Only one value can be defined for each given type name!"""),
+    ]
