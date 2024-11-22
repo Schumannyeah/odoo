@@ -13,3 +13,16 @@ class EstatePropertyType(models.Model):
     _sql_constraints = [
         ('type_name_uniq', 'unique (name)', """Only one value can be defined for each given type name!"""),
     ]
+
+    # for inline views
+    property_ids = fields.One2many("estate_property_type_line", "property_id")
+
+class EstatePropertyTypeLine(models.Model):
+    _name = "estate.property.type.line"
+    _description = "Estate Property Type Line"
+    _order = "id"
+
+    property_id = fields.Many2one("estate.property.type", string="Property Id", required=True, ondelete='cascade')
+    name = fields.Char("Name", required=True, translate=True)
+    expected_price = fields.Float('Expected Price', required=True, digits=(16, 2))
+    state = fields.Char()
