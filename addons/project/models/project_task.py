@@ -156,7 +156,6 @@ class Task(models.Model):
         default=_get_default_stage_id, group_expand='_read_group_stage_ids',
         domain="[('project_ids', '=', project_id)]")
     tag_ids = fields.Many2many('project.tags', string='Tags')
-    task_area = fields.Char(string='Task Area', tracking=True, default='运营管理')
     task_area = fields.Selection(
         string="Task Area",
         selection=[
