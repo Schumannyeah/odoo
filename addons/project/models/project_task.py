@@ -156,6 +156,28 @@ class Task(models.Model):
         default=_get_default_stage_id, group_expand='_read_group_stage_ids',
         domain="[('project_ids', '=', project_id)]")
     tag_ids = fields.Many2many('project.tags', string='Tags')
+    task_area = fields.Char(string='Task Area', tracking=True, default='运营管理')
+    task_area = fields.Selection(
+        string="Task Area",
+        selection=[
+            ('op_management', "运营管理"),
+            ('facility', "设备设施"),
+            ('hse', "健康安全环境"),
+            ('tech_process', "技术工艺"),
+            ('prod_zinc', "生产-锌熔"),
+            ('prod_crack', "生产-破碎"),
+            ('prod_screen', "生产-筛分"),
+            ('prod_wetgrind', "生产-湿磨"),
+            ('prod_fogdry', "生产-喷雾干燥"),
+            ('prod_forming', "生产-压制成型"),
+            ('prod_heatcrystal', "生产-烧结"),
+            ('prod_cleaning', "生产-清洗"),
+            ('prod_warehouse', "生产-仓库及配送"),
+            ('prod_qc', "生产-质量控制"),
+            ('others', "其它"),
+        ],
+        default='op_management',
+    )
 
     state = fields.Selection([
         ('01_in_progress', 'In Progress'),

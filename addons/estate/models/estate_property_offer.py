@@ -137,3 +137,39 @@ class EstatePropertyOffer(models.Model):
                 ])
                 if accepted_offers:
                     raise ValidationError("Only one offer can be accepted per property!")
+
+    # @api.model_create_multi decorator in Odoo is used when overriding the create method to allow processing multiple records at once
+    @api.model_create_multi
+    def create(self, vals_list):
+        """
+        Override the create method to:
+        - Set the related property state to 'Offer Received'.
+        - Prevent creating an offer with a lower price than an existing offer for the same property.
+        """
+        for vals in vals_list:
+            # Ensure property_id is provided
+            if not vals.get('property_id'):
+                raise UserError("Property ID is required to create an offer.")
+
+            # Fetch the related property using the ID
+            property_id = vals['property_id']
+            property_record = self.env['estate.property'].browse(property_id)
+
+            # Check if the price is lower than an existing offer for the same property
+            if 'price' in vals:
+                existing_offers = self.env['estate.property.offer'].search([
+                    ('property_id', '=', property_id)
+                ])
+                for offer in existing_offers:
+                    if vals['price'] <= offer.price:
+                        raise ValidationError(
+                            f"Cannot create an offer with a price ({vals['price']}) "
+                            f"lower than or equal to an existing offer ({offer.price}) for this property."
+                        )
+
+            # Set the related property's state to 'Offer Received' if not already updated
+            if property_record.state == 'new':  # Only update if state is 'new'
+                property_record.state = 'received'
+
+        # Call the parent method to create the records
+        return super().create(vals_list)

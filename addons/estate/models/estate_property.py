@@ -143,3 +143,11 @@ class EstateProperty(models.Model):
             else:
                 record.state = "sold"
 
+    # If you set at_uninstall=False, the ondelete method will not be called during the uninstallation of the module.
+    # This is usually the preferred behavior when the constraints or checks defined in the ondelete method
+    # are not critical for uninstallation, as enforcing them might block the uninstallation process.
+    @api.ondelete(at_uninstall=False)
+    def _check_property_deletion(self):
+        for record in self:
+            if record.state not in ['new', 'cancelled']:
+                raise UserError(f"Cannot delete property '{record.name}' because its state is '{record.state}'. Only properties in 'New' or 'Cancelled' states can be deleted.");
