@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_inherit_weight" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.weight</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='other_infos']" position="inside">
+                <group name="weight_info" string="Weight Information">
+                    <field name="weight_uom_id"/>
+                    <field name="total_theoretical_weight"/>
+                    <field name="total_actual_weight"/>
+                    <field name="total_weight_difference"/>
+                    <field name="total_weight_difference_percent" widget="percentage"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+c
+    <record id="view_picking_form_inherit_operations" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.operations</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <!-- Locate the move_ids_without_package field -->
+            <xpath expr="//field[@name='move_ids_without_package']/list" position="inside">
+                <!-- Access the actual_weight field from stock.move.line -->
+                <field name="move_ids_without_package.move_line_ids.actual_weight" string="Actual Weight"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
