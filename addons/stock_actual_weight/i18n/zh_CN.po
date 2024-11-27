@@ -1,0 +1,68 @@
+# zh_CN.po
+# Translations for the Chinese language
+
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-09-25 08:39+0000\n"
+"PO-Revision-Date: 2024-09-25 09:42+0000\n"
+"Last-Translator: Schumann Ye <schumannyeah@outlook.com>, 2024\n"
+"Language-Team: Chinese (China) (https://app.transifex.com/odoo/teams/41243/zh_CN/)\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Language: zh_CN\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_move_line__actual_weight
+msgid "Actual Weight"
+msgstr "实际重量"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_move_line__weight_uom_id
+msgid "Weight UoM"
+msgstr "重量单位"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_move_line__theoretical_weight
+msgid "Theoretical Weight"
+msgstr "理论重量"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_move_line__weight_difference
+msgid "Weight Difference"
+msgstr "实际与理论重量偏差"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_move_line__weight_difference_percent
+msgid "Weight Difference (%)"
+msgstr "实际与理论重量偏差%"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_picking__total_theoretical_weight
+msgid "Total Theoretical Weight"
+msgstr "全部理论重量"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_picking__total_actual_weight
+msgid "Total Actual Weight"
+msgstr "全部实际重量"
+
+
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_picking__total_weight_difference
+msgid "Total Weight Difference"
+msgstr "全部实际与理论重量偏差"
+
+#. module: stock_actual_weight
+#: model:ir.model.fields,field_description:stock_actual_weight.field_stock_picking__total_weight_difference_percent
+msgid "Total Weight Difference (%)"
+msgstr "全部实际与理论重量偏差%"
+
+#. module: stock_actual_weight
+#: model_terms:ir.ui.view,arch_db:stock_actual_weight.view_picking_form_inherit_weight
+msgid "Weight Information"
+msgstr "重量信息"

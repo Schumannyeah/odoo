@@ -13,6 +13,7 @@ class StockMoveLine(models.Model):
     )
     actual_weight = fields.Float(
         string='Actual Weight',
+        store=True,
         help='Actual measured weight during operation'
     )
     weight_difference = fields.Float(
