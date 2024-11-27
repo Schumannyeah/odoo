@@ -16,17 +16,21 @@
             </xpath>
         </field>
     </record>
-c
-    <record id="view_picking_form_inherit_operations" model="ir.ui.view">
-        <field name="name">stock.picking.form.inherit.operations</field>
-        <field name="model">stock.picking</field>
-        <field name="inherit_id" ref="stock.view_picking_form"/>
+
+    <!-- stock_move_line_form.xml -->
+    <record id="view_stock_move_line_form_inherit_weight" model="ir.ui.view">
+        <field name="name">stock.move.line.form.inherit.weight</field>
+        <field name="model">stock.move.line</field>
+        <field name="inherit_id" ref="stock.view_move_line_form"/>
         <field name="arch" type="xml">
-            <!-- Locate the move_ids_without_package field -->
-            <xpath expr="//field[@name='move_ids_without_package']/list" position="inside">
-                <!-- Access the actual_weight field from stock.move.line -->
-                <field name="move_ids_without_package.move_line_ids.actual_weight" string="Actual Weight"/>
-            </xpath>
+            <data>
+                <xpath expr="//field[@name='quantity']" position="after">
+                    <field name="actual_weight" string="Actual Weight" class="oe_inline"/>
+                    <field name="weight_uom_id" string="Weight UoM" nolabel="1" class="oe_inline"
+                           style="margin-left:5px"/>
+                </xpath>
+            </data>
         </field>
     </record>
+
 </odoo>
