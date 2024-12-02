@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Gantt View -->
+        <record id="view_mrp_production_gantt" model="ir.ui.view">
+            <field name="name">mrp.production.gantt</field>
+            <field name="model">mrp.production</field>
+            <field name="arch" type="xml">
+                <gantt
+                    date_start="planned_start_date"
+                    date_stop="planned_end_date"
+                    progress="progress_percentage"
+                    string="Manufacturing Orders"
+                    default_group_by="user_id">
+                    <field name="name"/>
+                    <field name="progress_percentage" widget="progressbar"/>
+                    <field name="state"/>
+                    <field name="user_id"/>
+                </gantt>
+            </field>
+        </record>
+
+        <!-- List/Tree View -->
+        <record id="view_mrp_production_gantt_tree" model="ir.ui.view">
+            <field name="name">mrp.production.gantt.tree</field>
+            <field name="model">mrp.production</field>
+            <field name="arch" type="xml">
+                <tree string="Manufacturing Orders">
+                    <field name="name"/>
+                    <field name="product_id"/>
+                    <field name="planned_start_date"/>
+                    <field name="planned_end_date"/>
+                    <field name="progress_percentage" widget="progressbar"/>
+                    <field name="state"/>
+                    <field name="user_id"/>
+                </tree>
+            </field>
+        </record>
+
+        <!-- Search View -->
+        <record id="view_mrp_production_gantt_search" model="ir.ui.view">
+            <field name="name">mrp.production.gantt.search</field>
+            <field name="model">mrp.production</field>
+            <field name="arch" type="xml">
+                <search string="Manufacturing Orders">
+                    <field name="name"/>
+                    <field name="product_id"/>
+                    <field name="user_id"/>
+                    <filter string="My Orders" name="my_orders" domain="[('user_id', '=', uid)]"/>
+                    <filter string="In Progress" name="in_progress" domain="[('state', '=', 'progress')]"/>
+                    <filter string="Planned" name="planned" domain="[('state', '=', 'planned')]"/>
+                    <filter string="Done" name="done" domain="[('state', '=', 'done')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Responsible" name="responsible" context="{'group_by': 'user_id'}"/>
+                        <filter string="Status" name="status" context="{'group_by': 'state'}"/>
+                        <filter string="Product" name="product" context="{'group_by': 'product_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- Action -->
+        <record id="action_mrp_production_gantt" model="ir.actions.act_window">
+            <field name="name">Manufacturing Schedule</field>
+            <field name="res_model">mrp.production</field>
+            <field name="view_mode">gantt,tree</field>
+            <field name="search_view_id" ref="view_mrp_production_gantt_search"/>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No manufacturing orders found
+                </p>
+                <p>
+                    Create manufacturing orders to schedule your production.
+                </p>
+            </field>
+        </record>
+
+        <!-- Menu Item -->
+        <menuitem
+            id="menu_mrp_production_gantt"
+            name="Production Schedule"
+            parent="mrp.menu_mrp_manufacturing"
+            action="action_mrp_production_gantt"
+            sequence="5"/>
+       </data>
+</odoo>

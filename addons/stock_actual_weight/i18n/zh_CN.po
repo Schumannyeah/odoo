@@ -50,8 +50,6 @@ msgstr "全部理论重量"
 msgid "Total Actual Weight"
 msgstr "全部实际重量"
 
-
-
 #. module: stock_actual_weight
 #: model:ir.model.fields,field_description:stock_actual_weight.field_stock_picking__total_weight_difference
 msgid "Total Weight Difference"
